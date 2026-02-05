@@ -14,14 +14,14 @@
 
 - name: Create local test data directory
   file:
-    path: /mnt/omero_data
+    path: "{{ vault_omero_data_path | default('/mnt/omero_data') }}"
     state: directory
     mode: '0755'
   become: yes
 
 - name: Set OMERO data directory ownership
   file:
-    path: /mnt/omero_data
+    path: "{{ vault_omero_data_path | default('/mnt/omero_data') }}"
     state: directory
     owner: "{{ omero_uid }}"
     group: root
