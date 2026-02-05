@@ -5,7 +5,7 @@
 config set omero.web.apps '["omero_figure", "omero_iviewer", "omero_mapr", "omero_parade", "omero_fpbioimage"]'
 
 # Login customisation
-config set omero.web.login_logo "https://upload.wikimedia.org/wikipedia/commons/4/4c/Maastricht_University_logo_%282017_new_version%29.svg"
+config set omero.web.login_logo "https://www.qualityzorg.nl/home/wp-content/uploads/LUMC-logo-1.png"
 
 # Gunicorn settings
 config set omero.web.wsgi_workers 17
@@ -14,7 +14,7 @@ config set omero.web.application_server.host "0.0.0.0"
 config set omero.web.application_server.port 4080
 
 # CSRF trusted origins
-config set omero.web.csrf_trusted_origins '["https://{{ server_name }}", "https://{{ ansible_host }}"]'
+config set csrf_trusted_origins '["https://{{ server_name }}", "https://{{ ansible_host }}"]'
 
 # Default viewer configuration
 config set omero.web.viewer.view "omero_iviewer.views.index"

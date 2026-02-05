@@ -8,7 +8,7 @@
 # This dockerfile mitigates these issues and aligns with good-practice principles.
 # Importantly, please make sure that this uid matches the ownership of your datastore files.
 
-FROM openmicroscopy/omero-server:5
+FROM openmicroscopy/omero-server:{{ omero_server_version }}
 
 # Change omero-server user to configurable UID, keep original group
 USER root

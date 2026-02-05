@@ -2,10 +2,11 @@ services:
 
   database:
     image: "postgres:16"
+    container_name: "{{ vault_container_prefix | default('omero') }}-database"
     restart: unless-stopped
     environment:
-      POSTGRES_USER: omero_psql_user
-      POSTGRES_DB: omero_database
+      POSTGRES_USER: "{{ vault_postgres_user | default('omero') }}"
+      POSTGRES_DB: "{{ vault_postgres_database | default('omero') }}"
       POSTGRES_PASSWORD: "{{ vault_postgres_password }}"
       POSTGRES_HOST_AUTH_METHOD: trust
     networks:
@@ -17,19 +18,21 @@ services:
     build:
       context: .
       dockerfile: Dockerfile-server
+    container_name: "{{ vault_container_prefix | default('omero') }}-server"
     restart: unless-stopped
     environment:
       CONFIG_omero_db_host: database
-      CONFIG_omero_db_user: omero_psql_user
+      CONFIG_omero_db_user: "{{ vault_postgres_user | default('omero') }}"
       CONFIG_omero_db_pass: "{{ vault_postgres_password }}"
-      CONFIG_omero_db_name: omero_database
+      CONFIG_omero_db_name: "{{ vault_postgres_database | default('omero') }}"
       ROOTPASS: "{{ vault_omero_root_password }}"
     networks:
       - omero
     ports:
-      - "127.0.0.1:4064:4064"  # OMERO.insight SSL client access
+      - "127.0.0.1:{{ vault_omero_server_ssl_port | default('4064') }}:4064"  # OMERO.insight SSL client access
     volumes:
-      - "/mnt/omero_data:/OMERO"
+      - "{{ vault_omero_data_path | default('/mnt/omero_data') }}:/OMERO"
+      - "{{ vault_omero_import_path | default('/mnt/omero_import') }}:/data"
       - "./server_conf.omero:/opt/omero/server/config/server_conf.omero"
       - "../ssl/omero:/etc/ssl/omero:ro" 
     ulimits:
@@ -43,13 +46,14 @@ services:
     build:
       context: .
       dockerfile: Dockerfile-web
+    container_name: "{{ vault_container_prefix | default('omero') }}-web"
     restart: unless-stopped
     environment:
       OMEROHOST: omeroserver
     networks:
       - omero
     ports:
-      - "127.0.0.1:4080:4080"  # Web interface for nginx proxy
+      - "127.0.0.1:{{ vault_omero_web_port | default('4080') }}:4080"  # Web interface for nginx proxy
     volumes:
       - "./web_conf.omero:/opt/omero/web/config/web_conf.omero"
       - "/var/www/omero-static:/opt/omero/web/OMERO.web/var/static"
@@ -58,3 +62,4 @@ services:
 
 networks:
   omero:
+    name: "{{ vault_container_prefix | default('omero') }}-network"

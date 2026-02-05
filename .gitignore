@@ -8,3 +8,4 @@ database/
 /backups/*
 !/backups/README.md
 docker/docker-compose.yml
+vault_local.yml

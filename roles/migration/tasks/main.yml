@@ -1,52 +1,73 @@
-- name: Check if database dump file exists
+- name: Check if SQL dump file exists
   stat:
     path: "{{ ansible_user_dir }}/omero-deployment-kit/backups/restore_omero_from_dump.sql"
-  register: dump_file
+  register: sql_dump_file
+
+- name: Check if custom format dump file exists
+  stat:
+    path: "{{ ansible_user_dir }}/omero-deployment-kit/backups/restore_omero_from_dump.dump"
+  register: custom_dump_file
+
+- name: Set dump file facts
+  set_fact:
+    dump_exists: "{{ sql_dump_file.stat.exists or custom_dump_file.stat.exists }}"
+    dump_is_custom: "{{ custom_dump_file.stat.exists }}"
 
 - name: Stop containers for database restore
   command: docker compose down
   args:
     chdir: "{{ ansible_user_dir }}/omero-deployment-kit/docker"
-  when: dump_file.stat.exists
+  when: dump_exists
 
 - name: Start database container only
   command: docker compose up -d database
   args:
     chdir: "{{ ansible_user_dir }}/omero-deployment-kit/docker"
-  when: dump_file.stat.exists
+  when: dump_exists
 
 - name: Wait for database to be ready
   shell: |
-    docker exec docker-database-1 pg_isready -U omero_psql_user
+    docker exec {{ vault_container_prefix | default('omero') }}-database pg_isready -U {{ vault_postgres_user | default('omero') }}
   register: db_ready
   until: db_ready.rc == 0
   retries: 30
   delay: 2
-  when: dump_file.stat.exists
+  when: dump_exists
 
-- name: Copy dump file to database container
+- name: Create database if not exists
   shell: |
-    docker cp "{{ ansible_user_dir }}/omero-deployment-kit/backups/restore_omero_from_dump.sql" docker-database-1:/tmp/restore_omero_from_dump.sql
-  when: dump_file.stat.exists
-
-- name: Create fresh database for restore
-  shell: |
-    docker exec docker-database-1 psql -U omero_psql_user -d postgres -c "CREATE DATABASE omero_database;"
-  when: dump_file.stat.exists
+    docker exec {{ vault_container_prefix | default('omero') }}-database psql -U {{ vault_postgres_user | default('omero') }} -d postgres -c "CREATE DATABASE {{ vault_postgres_database | default('omero') }};"
+  when: dump_exists
   ignore_errors: yes  # Database might already exist
 
-- name: Restore database from dump
+- name: Copy custom dump file to container
   shell: |
-    docker exec docker-database-1 pg_restore -U omero_psql_user -d omero_database --clean --if-exists /tmp/restore_omero_from_dump.sql
-  when: dump_file.stat.exists
+    docker cp "{{ ansible_user_dir }}/omero-deployment-kit/backups/restore_omero_from_dump.dump" {{ vault_container_prefix | default('omero') }}-database:/tmp/restore.dump
+  when: dump_exists and dump_is_custom
 
-- name: Clean up temporary dump file in container
+- name: Restore database from custom format dump (.dump)
   shell: |
-    docker exec docker-database-1 rm /tmp/restore_omero_from_dump.sql
-  when: dump_file.stat.exists
+    docker exec {{ vault_container_prefix | default('omero') }}-database pg_restore -U {{ vault_postgres_user | default('omero') }} -d {{ vault_postgres_database | default('omero') }} --clean --if-exists --no-owner /tmp/restore.dump
+  when: dump_exists and dump_is_custom
 
-- name: Rename processed dump file
-  command: mv restore_omero_from_dump.sql omero_dump.sql.processed
+- name: Clean up dump file in container
+  shell: |
+    docker exec {{ vault_container_prefix | default('omero') }}-database rm -f /tmp/restore.dump
+  when: dump_exists and dump_is_custom
+
+- name: Restore database from SQL dump (.sql)
+  shell: |
+    docker exec -i {{ vault_container_prefix | default('omero') }}-database psql -U {{ vault_postgres_user | default('omero') }} -d {{ vault_postgres_database | default('omero') }} < "{{ ansible_user_dir }}/omero-deployment-kit/backups/restore_omero_from_dump.sql"
+  when: dump_exists and not dump_is_custom
+
+- name: Rename processed custom dump file
+  command: mv restore_omero_from_dump.dump restore_omero_from_dump.dump.processed
   args:
     chdir: "{{ ansible_user_dir }}/omero-deployment-kit/backups"
-  when: dump_file.stat.exists
+  when: dump_exists and dump_is_custom
+
+- name: Rename processed SQL dump file
+  command: mv restore_omero_from_dump.sql restore_omero_from_dump.sql.processed
+  args:
+    chdir: "{{ ansible_user_dir }}/omero-deployment-kit/backups"
+  when: dump_exists and not dump_is_custom
