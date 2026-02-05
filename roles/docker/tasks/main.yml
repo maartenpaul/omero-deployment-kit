@@ -1,15 +1,23 @@
 
+- name: Check if Docker is already installed
+  command: docker --version
+  register: docker_installed
+  ignore_errors: yes
+  changed_when: false
+
 - name: Add Docker GPG apt key
   apt_key:
     url: https://download.docker.com/linux/ubuntu/gpg
     state: present
   become: yes
+  when: docker_installed.rc != 0
 
 - name: Add Docker repo
   apt_repository:
     repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu noble stable
     state: present
   become: yes
+  when: docker_installed.rc != 0
  
 - name: Install or update docker from Docker repo
   apt:
@@ -22,6 +30,7 @@
     state: latest
   become: yes
   notify: restart docker
+  when: docker_installed.rc != 0
 
 - name: Create Docker group
   group:
