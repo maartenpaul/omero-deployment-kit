@@ -68,18 +68,13 @@
     src: Dockerfile-web.j2
     dest: "{{ ansible_user_dir }}/omero-deployment-kit/docker/Dockerfile-web"
     mode: '0644'
-    owner: "{{ ansible_user }}"
-    group: "{{ ansible_user }}"
   notify: restart omero containers
-  no_log: true # disable logs to prevent logging of credentials in password protected repo for Pathview.
 
 - name: Deploy custom OMERO server Dockerfile
   template:
     src: Dockerfile-server.j2
     dest: "{{ ansible_user_dir }}/omero-deployment-kit/docker/Dockerfile-server"
     mode: '0644'
-    owner: "{{ ansible_user }}"
-    group: "{{ ansible_user }}"
   notify: restart omero containers
 
 - name: Deploy OMERO server configuration
@@ -87,8 +82,6 @@
     src: server_conf.omero.j2
     dest: "{{ ansible_user_dir }}/omero-deployment-kit/docker/server_conf.omero"
     mode: '0644'
-    owner: "{{ ansible_user }}"
-    group: "{{ ansible_user }}"
   notify: restart omero containers
 
 - name: Deploy OMERO web configuration
@@ -96,8 +89,6 @@
     src: web_conf.omero.j2
     dest: "{{ ansible_user_dir }}/omero-deployment-kit/docker/web_conf.omero"
     mode: '0644'
-    owner: "{{ ansible_user }}"
-    group: "{{ ansible_user }}"
   notify: restart omero containers
 
 - name: Deploy docker-compose configuration
@@ -105,7 +96,5 @@
     src: docker-compose.yml.j2
     dest: "{{ ansible_user_dir }}/omero-deployment-kit/docker/docker-compose.yml"
     mode: '0644'
-    owner: "{{ ansible_user }}"
-    group: "{{ ansible_user }}"
   notify: restart omero containers
 

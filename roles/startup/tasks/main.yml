@@ -2,3 +2,4 @@
   command: docker compose up -d --build
   args:
     chdir: "{{ ansible_user_dir }}/omero-deployment-kit/docker"
+  become: yes

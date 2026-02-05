@@ -18,12 +18,14 @@
   args:
     chdir: "{{ ansible_user_dir }}/omero-deployment-kit/docker"
   when: dump_exists
+  become: yes
 
 - name: Start database container only
   command: docker compose up -d database
   args:
     chdir: "{{ ansible_user_dir }}/omero-deployment-kit/docker"
   when: dump_exists
+  become: yes
 
 - name: Wait for database to be ready
   shell: |
@@ -33,32 +35,38 @@
   retries: 30
   delay: 2
   when: dump_exists
+  become: yes
 
 - name: Create database if not exists
   shell: |
     docker exec {{ vault_container_prefix | default('omero') }}-database psql -U {{ vault_postgres_user | default('omero') }} -d postgres -c "CREATE DATABASE {{ vault_postgres_database | default('omero') }};"
   when: dump_exists
   ignore_errors: yes  # Database might already exist
+  become: yes
 
 - name: Copy custom dump file to container
   shell: |
     docker cp "{{ ansible_user_dir }}/omero-deployment-kit/backups/restore_omero_from_dump.dump" {{ vault_container_prefix | default('omero') }}-database:/tmp/restore.dump
   when: dump_exists and dump_is_custom
+  become: yes
 
 - name: Restore database from custom format dump (.dump)
   shell: |
     docker exec {{ vault_container_prefix | default('omero') }}-database pg_restore -U {{ vault_postgres_user | default('omero') }} -d {{ vault_postgres_database | default('omero') }} --clean --if-exists --no-owner /tmp/restore.dump
   when: dump_exists and dump_is_custom
+  become: yes
 
 - name: Clean up dump file in container
   shell: |
     docker exec {{ vault_container_prefix | default('omero') }}-database rm -f /tmp/restore.dump
   when: dump_exists and dump_is_custom
+  become: yes
 
 - name: Restore database from SQL dump (.sql)
   shell: |
     docker exec -i {{ vault_container_prefix | default('omero') }}-database psql -U {{ vault_postgres_user | default('omero') }} -d {{ vault_postgres_database | default('omero') }} < "{{ ansible_user_dir }}/omero-deployment-kit/backups/restore_omero_from_dump.sql"
   when: dump_exists and not dump_is_custom
+  become: yes
 
 - name: Rename processed custom dump file
   command: mv restore_omero_from_dump.dump restore_omero_from_dump.dump.processed
