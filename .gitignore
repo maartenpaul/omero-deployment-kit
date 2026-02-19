@@ -12,4 +12,6 @@ database-biomero/
 metabase/
 config/biomero-importer/groups_list.json
 config/biomero/slurm-config.ini
+vault.yml
+vault-biomero.yml
 vault_local.yml
