@@ -53,6 +53,20 @@
     group: root
   become: yes
 
+- name: Generate Diffie-Hellman parameters for Glacier2 IceSSL
+  command: openssl dhparam -out "{{ ansible_user_dir }}/omero-deployment-kit/ssl/omero/ffdhe2048.pem" 2048
+  args:
+    creates: "{{ ansible_user_dir }}/omero-deployment-kit/ssl/omero/ffdhe2048.pem"
+  become: yes
+
+- name: Set DH parameters permissions
+  file:
+    path: "{{ ansible_user_dir }}/omero-deployment-kit/ssl/omero/ffdhe2048.pem"
+    mode: '0644'
+    owner: "{{ omero_uid }}"
+    group: root
+  become: yes
+
 - name: Copy certificate for OMERO server
   copy:
     src: /etc/ssl/certs/omero.pem
