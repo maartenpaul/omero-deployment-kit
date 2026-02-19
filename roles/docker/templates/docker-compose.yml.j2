@@ -130,13 +130,13 @@ services:
       ROOTPASS: "{{ vault_omero_root_password }}"
       IMPORTER_ENABLED: "{{ vault_biomero_importer_enabled | default('TRUE') }}"
       ANALYZER_ENABLED: "{{ vault_biomero_analyzer_enabled | default('FALSE') }}"
+      FORMS_MASTER_USER: "{{ vault_forms_master_user | default('root') }}"
+      FORMS_MASTER_PASSWORD: "{{ vault_forms_master_password | default('omero') }}"
 {% if vault_biomero_analyzer_enabled | default('FALSE') == 'TRUE' %}
       METABASE_SITE_URL: "{{ vault_metabase_site_url }}"
       METABASE_SECRET_KEY: "{{ vault_metabase_secret_key }}"
       METABASE_IMPORTS_DB_PAGE_DASHBOARD_ID: "{{ vault_metabase_imports_dashboard_id }}"
       METABASE_WORKFLOWS_DB_PAGE_DASHBOARD_ID: "{{ vault_metabase_workflows_dashboard_id }}"
-      FORMS_MASTER_USER: "{{ vault_forms_master_user }}"
-      FORMS_MASTER_PASSWORD: "{{ vault_forms_master_password }}"
 {% endif %}
     networks:
       - omero
