@@ -16,21 +16,32 @@ vault_NFS_fullpath: "fullpath"
 vault_pathviewer_repo_url: "https://username:password@repo.glencoesoftware.com/repository/pathviewer-group/simple"
 
 # LDAP
-## LDAP Domain Controllers for certificate fetching
-vault_domain_controllers:
-  - host: "ldap.domain.nl"
-    port: 636
-    alias: "ldap_domain"
-  - host: "dc01.domain.nl"
-    port: 636
-    alias: "dc01"
-  - host: "dc02.domain.nl"
-    port: 636
-    alias: "dc02"
+vault_ldap_enabled: true
+
+## LDAP Domain Controllers for certificate fetching (only needed for ldaps://)
+## Uncomment and configure if using ldaps:// URLs
+# vault_domain_controllers:
+#   - host: "ldap.domain.nl"
+#     port: 636
+#     alias: "ldap_domain"
+#   - host: "dc01.domain.nl"
+#     port: 636
+#     alias: "dc01"
+#   - host: "dc02.domain.nl"
+#     port: 636
+#     alias: "dc02"
 
 ## LDAP variables for server_config.Omero
-vault_ldap_base: "ldap_base"
-vault_ldap_urls: "ldap_urls"
-vault_ldap_username: "ldap_username"
+## Use ldap:// for plain LDAP or ldaps:// for LDAP over SSL (requires certificate setup above)
+vault_ldap_base: "dc=domain,dc=nl"
+vault_ldap_urls: "ldap://ldap.domain.nl"
+vault_ldap_username: "cn=ldapbrowse,cn=Users,dc=domain,dc=nl"
 vault_ldap_password: "insertStrongPassword"
-vault_ldap_filter: "(memberOf=CN=omeroAccess,OU=faculty,DC=domain,DC=nl)"
+vault_ldap_user_filter: "(objectClass=person)"
+vault_ldap_user_mapping: "omeName=cn,firstName=givenName,lastName=sn,email=mail,institution=department,middleName=middleName"
+vault_ldap_group_filter: "(objectClass=groupOfUniqueNames)"
+vault_ldap_group_mapping: "name=cn"
+vault_ldap_new_user_group: "default"
+vault_ldap_security_ignore_case: true
+# vault_ldap_referral: "follow"
+# vault_ldap_sync_on_login: false
