@@ -122,7 +122,7 @@ services:
     environment:
       OMEROHOST: omeroserver
       OMEROPORT: "{{ vault_omero_server_ssl_port | default('4064') }}"
-      CONFIG_omero_web_login__logo: "https://www.qualityzorg.nl/home/wp-content/uploads/LUMC-logo-1.png"
+      CONFIG_omero_web_login__logo: "{{ vault_omero_web_login_logo | default('') }}"
       CONFIG_omero_scripts_timeout: 604800000
       ENV: "{{ vault_biomero_env | default('TEST') }}"
       INGEST_TRACKING_DB_URL: "postgresql+psycopg2://{{ vault_biomero_postgres_user | default('biomero') }}:{{ vault_biomero_postgres_password }}@database-biomero:5432/{{ vault_biomero_postgres_database | default('biomero') }}"

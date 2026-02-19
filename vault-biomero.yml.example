@@ -3,6 +3,9 @@ vault_biomero_postgres_user: "biomero"
 vault_biomero_postgres_database: "biomero"
 vault_biomero_postgres_password: "insertStrongPassword"
 
+# Login page branding
+vault_omero_web_login_logo: "https://your-institution.edu/logo.png"
+
 # BIOMERO image versions
 vault_nl_biomero_version: "latest"
 vault_biomero_importer_version: "latest"
