@@ -20,12 +20,25 @@ services:
       dockerfile: Dockerfile-server
     container_name: "{{ vault_container_prefix | default('omero') }}-server"
     restart: unless-stopped
+    security_opt:
+      - seccomp=unconfined
+    ulimits:
+      nofile:
+        soft: 8192
+        hard: 65536
+      nproc: 2048
+      stack: 16777216
     environment:
       CONFIG_omero_db_host: database
       CONFIG_omero_db_user: "{{ vault_postgres_user | default('omero') }}"
       CONFIG_omero_db_pass: "{{ vault_postgres_password }}"
       CONFIG_omero_db_name: "{{ vault_postgres_database | default('omero') }}"
+      CONFIG_omero_scripts_timeout: 604800000
       ROOTPASS: "{{ vault_omero_root_password }}"
+{% if vault_omero_worker_enabled | default('FALSE') == 'TRUE' or vault_biomero_analyzer_enabled | default('FALSE') == 'TRUE' %}
+      CONFIG_omero_master_host: omeroserver
+      CONFIG_omero_server_nodedescriptors: "master:Blitz-0{% if vault_omero_worker_enabled | default('FALSE') == 'TRUE' %} omeroworker-1:Tables-0,Indexer-0,PixelData-0,DropBox,MonitorServer,FileServer,Storm{% endif %}{% if vault_biomero_analyzer_enabled | default('FALSE') == 'TRUE' %} biomeroworker:Processor-0{% endif %}"
+{% endif %}
     networks:
       - omero
     ports:
@@ -36,13 +49,61 @@ services:
       - "{{ vault_omero_import_path | default('/mnt/omero_import') }}:/data"
       - "./server_conf.omero:/opt/omero/server/config/server_conf.omero"
       - "../ssl/omero:/etc/ssl/omero:ro"
-    ulimits:
-      nofile:
-        soft: 8192
-        hard: 65536
     depends_on:
       - database
 
+{% if vault_omero_worker_enabled | default('FALSE') == 'TRUE' %}
+  omeroworker-1:
+    image: "cellularimagingcf/omeroworker:{{ vault_nl_biomero_version | default('latest') }}"
+    container_name: "{{ vault_container_prefix | default('omero') }}-worker-1"
+    restart: unless-stopped
+    security_opt:
+      - seccomp=unconfined
+    ulimits:
+      nproc: 2048
+      stack: 16777216
+    environment:
+      CONFIG_omero_master_host: omeroserver
+      OMERO_WORKER_NAME: omeroworker-1
+      CONFIG_omero_scripts_timeout: 604800000
+    networks:
+      - omero
+    volumes:
+      - "{{ vault_omero_data_path | default('/mnt/omero_data') }}:/OMERO"
+      - "{{ vault_biomero_import_data_path }}:/data"
+    depends_on:
+      - omeroserver
+
+{% endif %}
+{% if vault_biomero_analyzer_enabled | default('FALSE') == 'TRUE' %}
+  biomeroworker:
+    image: "cellularimagingcf/biomero:{{ vault_nl_biomero_version | default('latest') }}"
+    container_name: "{{ vault_container_prefix | default('omero') }}-biomeroworker"
+    restart: unless-stopped
+    security_opt:
+      - seccomp=unconfined
+    ulimits:
+      nproc: 2048
+      stack: 16777216
+    environment:
+      CONFIG_omero_master_host: omeroserver
+      OMERO_WORKER_NAME: biomeroworker
+      CONFIG_omero_logging_level: 10
+      CONFIG_omero_scripts_timeout: 604800000
+      PERSISTENCE_MODULE: eventsourcing_sqlalchemy
+      SQLALCHEMY_URL: "postgresql+psycopg2://{{ vault_biomero_postgres_user | default('biomero') }}:{{ vault_biomero_postgres_password }}@database-biomero:5432/{{ vault_biomero_postgres_database | default('biomero') }}"
+    networks:
+      - omero
+    volumes:
+      - "{{ vault_omero_data_path | default('/mnt/omero_data') }}:/OMERO"
+      - "{{ vault_biomero_ssh_keys_path | default('/opt/omero/.ssh') }}:/tmp/.ssh:ro"
+      - "../config/biomero/slurm-config.ini:/opt/omero/server/slurm-config.ini:rw"
+      - "{{ vault_biomero_import_data_path }}:/data"
+    depends_on:
+      - omeroserver
+      - database-biomero
+
+{% endif %}
   database-biomero:
     image: "postgres:16"
     container_name: "{{ vault_container_prefix | default('omero') }}-database-biomero"
@@ -71,12 +132,23 @@ services:
       ROOTPASS: "{{ vault_omero_root_password }}"
       IMPORTER_ENABLED: "{{ vault_biomero_importer_enabled | default('TRUE') }}"
       ANALYZER_ENABLED: "{{ vault_biomero_analyzer_enabled | default('FALSE') }}"
+{% if vault_biomero_analyzer_enabled | default('FALSE') == 'TRUE' %}
+      METABASE_SITE_URL: "{{ vault_metabase_site_url }}"
+      METABASE_SECRET_KEY: "{{ vault_metabase_secret_key }}"
+      METABASE_IMPORTS_DB_PAGE_DASHBOARD_ID: "{{ vault_metabase_imports_dashboard_id }}"
+      METABASE_WORKFLOWS_DB_PAGE_DASHBOARD_ID: "{{ vault_metabase_workflows_dashboard_id }}"
+      FORMS_MASTER_USER: "{{ vault_forms_master_user }}"
+      FORMS_MASTER_PASSWORD: "{{ vault_forms_master_password }}"
+{% endif %}
     networks:
       - omero
     ports:
       - "{{ vault_omero_web_port | default('4080') }}:4080"
     volumes:
       - "{{ vault_biomero_import_data_path }}:/data:rw"
+{% if vault_biomero_analyzer_enabled | default('FALSE') == 'TRUE' %}
+      - "../config/biomero/slurm-config.ini:/opt/omero/web/OMERO.web/var/slurm-config.ini:rw"
+{% endif %}
     depends_on:
       - omeroserver
       - database-biomero
@@ -97,6 +169,7 @@ services:
     volumes:
       - "../metabase:/metabase-data"
 
+{% if vault_biomero_importer_enabled | default('TRUE') == 'TRUE' %}
   biomero-importer:
     image: "cellularimagingcf/biomero-importer:{{ vault_biomero_importer_version | default('latest') }}"
     container_name: "{{ vault_container_prefix | default('omero') }}-importer"
@@ -121,6 +194,7 @@ services:
     depends_on:
       - database-biomero
 
+{% endif %}
 networks:
   omero:
     name: "{{ vault_container_prefix | default('omero') }}-network"

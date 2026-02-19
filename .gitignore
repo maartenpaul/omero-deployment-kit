@@ -11,4 +11,5 @@ docker/docker-compose.yml
 database-biomero/
 metabase/
 config/biomero-importer/groups_list.json
+config/biomero/slurm-config.ini
 vault_local.yml

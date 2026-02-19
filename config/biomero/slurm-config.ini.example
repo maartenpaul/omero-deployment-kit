@@ -1,0 +1,3 @@
+# Slurm configuration for BIOMERO analyzer
+# Copy this file to slurm-config.ini and fill in your Slurm cluster details
+# See BIOMERO documentation for configuration options

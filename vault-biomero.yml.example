@@ -3,13 +3,16 @@ vault_biomero_postgres_user: "biomero"
 vault_biomero_postgres_database: "biomero"
 vault_biomero_postgres_password: "insertStrongPassword"
 
-# BIOMERO Web (cellularimagingcf/omeroweb image version)
+# BIOMERO image versions
 vault_nl_biomero_version: "latest"
+vault_biomero_importer_version: "latest"
+
+# Service toggles (TRUE/FALSE)
 vault_biomero_importer_enabled: "TRUE"
 vault_biomero_analyzer_enabled: "FALSE"
+vault_omero_worker_enabled: "FALSE"
 
 # BIOMERO Importer
-vault_biomero_importer_version: "latest"
 vault_biomero_importer_uid: 1000
 vault_biomero_importer_gid: 1000
 
@@ -20,3 +23,18 @@ vault_biomero_import_data_path: "/path/to/L-Drive"
 vault_metabase_user: "admin@institution.nl"
 vault_metabase_password: "insertStrongPassword"
 vault_metabase_port: 3000
+
+# --- Analyzer-only settings (required when vault_biomero_analyzer_enabled: "TRUE") ---
+
+# SSH keys for Slurm connection
+# vault_biomero_ssh_keys_path: "/opt/omero/.ssh"
+
+# Metabase integration
+# vault_metabase_site_url: "https://omero.institution.nl/metabase"
+# vault_metabase_secret_key: "insertMetabaseSecretKey"
+# vault_metabase_imports_dashboard_id: 1
+# vault_metabase_workflows_dashboard_id: 2
+
+# Forms master credentials
+# vault_forms_master_user: "root"
+# vault_forms_master_password: "insertStrongPassword"
