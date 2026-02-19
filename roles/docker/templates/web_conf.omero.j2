@@ -1,8 +1,5 @@
 # Ansible managed
 
-# OMERO server connection (using non-SSL port for internal Docker network)
-config set omero.web.server_list '[["omeroserver", 4064, "omero"]]'
-
 # Web applications
 config set omero.web.apps '["omero_figure", "omero_iviewer", "omero_mapr", "omero_parade", "omero_fpbioimage"]'
 
@@ -16,7 +13,7 @@ config set omero.web.application_server.host "0.0.0.0"
 config set omero.web.application_server.port 4080
 
 # CSRF trusted origins
-config set csrf_trusted_origins '["https://{{ server_name }}", "https://{{ ansible_host }}"]'
+config set omero.web.csrf_trusted_origins '["https://{{ server_name }}", "https://{{ ansible_host }}"]'
 
 # Default viewer configuration
 config set omero.web.viewer.view "omero_iviewer.views.index"

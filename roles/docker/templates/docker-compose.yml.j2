@@ -29,8 +29,8 @@ services:
     networks:
       - omero
     ports:
-      - "4063:4063"  # OMERO.insight plaintext client access
-      - "4064:4064"  # OMERO.insight SSL client access
+      - "{{ vault_omero_server_port | default('4063') }}:4063"  # OMERO.insight plaintext client access
+      - "{{ vault_omero_server_ssl_port | default('4064') }}:4064"  # OMERO.insight SSL client access
     volumes:
       - "{{ vault_omero_data_path | default('/mnt/omero_data') }}:/OMERO"
       - "{{ vault_omero_import_path | default('/mnt/omero_import') }}:/data"
@@ -54,7 +54,7 @@ services:
     networks:
       - omero
     ports:
-      - "4080:4080"  # Web interface for nginx proxy
+      - "{{ vault_omero_web_port | default('4080') }}:4080"  # Web interface for nginx proxy
     volumes:
       - "./web_conf.omero:/opt/omero/web/config/web_conf.omero"
       - "/var/www/omero-static:/opt/omero/web/OMERO.web/var/static"
