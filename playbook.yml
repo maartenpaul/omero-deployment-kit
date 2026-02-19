@@ -1,9 +1,10 @@
 - hosts: all
   vars_files:
     - vault.yml
+    - vault-biomero.yml
   roles:
     - base
     - docker
     - encryption
-    - migration 
+    - migration
     - startup

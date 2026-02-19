@@ -71,12 +71,10 @@
   become: yes
   notify: restart nginx
 
-- name: Create OMERO static files directory
+- name: Create BIOMERO import data directory
   file:
-    path: /var/www/omero-static
+    path: "{{ vault_biomero_import_data_path | default('/mnt/biomero_import') }}"
     state: directory
-    owner: "{{ omero_web_uid }}"
-    group: www-data
     mode: '0755'
   become: yes
 

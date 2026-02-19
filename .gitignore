@@ -8,4 +8,7 @@ database/
 /backups/*
 !/backups/README.md
 docker/docker-compose.yml
+database-biomero/
+metabase/
+config/biomero-importer/groups_list.json
 vault_local.yml

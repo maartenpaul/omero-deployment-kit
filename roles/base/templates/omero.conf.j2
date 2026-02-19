@@ -18,13 +18,6 @@ server {
     ssl_session_cache shared:SSL:50m;
     ssl_session_timeout 50m;
 
-    # Serve static files directly  
-    location /static/ {
-        alias /var/www/omero-static/;
-        expires 1d;
-        add_header Cache-Control "public, immutable";
-    }
-
     # Fix broken fpbioimage plugin URL
     location /webclient/omero_fpbioimage_index {
         if ($args ~ image=([0-9]+)) {
@@ -34,12 +27,17 @@ server {
         return 404;
     }
 
-    # Proxy dynamic requests to OMERO web
-    location / {
-        try_files $uri @proxy_to_omero;
+    # Proxy Metabase analytics dashboard
+    location /metabase/ {
+        proxy_pass http://localhost:{{ vault_metabase_port | default('3000') }}/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
     }
 
-    location @proxy_to_omero {
+    # Proxy dynamic requests to OMERO web
+    location / {
         proxy_pass http://localhost:{{ vault_omero_web_port | default('4080') }};
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;

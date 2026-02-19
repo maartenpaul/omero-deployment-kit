@@ -1,0 +1,22 @@
+# BIOMERO Database (tracking/analytics)
+vault_biomero_postgres_user: "biomero"
+vault_biomero_postgres_database: "biomero"
+vault_biomero_postgres_password: "insertStrongPassword"
+
+# BIOMERO Web (cellularimagingcf/omeroweb image version)
+vault_nl_biomero_version: "latest"
+vault_biomero_importer_enabled: "TRUE"
+vault_biomero_analyzer_enabled: "FALSE"
+
+# BIOMERO Importer
+vault_biomero_importer_version: "latest"
+vault_biomero_importer_uid: 1000
+vault_biomero_importer_gid: 1000
+
+# Import data mount path (L-Drive or equivalent)
+vault_biomero_import_data_path: "/path/to/L-Drive"
+
+# Metabase
+vault_metabase_user: "admin@institution.nl"
+vault_metabase_password: "insertStrongPassword"
+vault_metabase_port: 3000
