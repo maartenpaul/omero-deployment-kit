@@ -1,5 +1,7 @@
 # Ansible managed
 
+# OMERO server connection (using non-SSL port for internal Docker network)
+config set omero.web.server_list '[["omeroserver", 4064, "omero"]]'
 
 # Web applications
 config set omero.web.apps '["omero_figure", "omero_iviewer", "omero_mapr", "omero_parade", "omero_fpbioimage"]'
