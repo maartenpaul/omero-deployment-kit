@@ -1,47 +1,61 @@
-# Database
-vault_postgres_password: "insertStrongPassword"
+# Database - match your existing NL-BIOMERO credentials
+vault_postgres_user: "omero"
+vault_postgres_database: "omero"
+vault_postgres_password: "omero"
+
+# OMERO Version - upgrade targets
+omero_server_version: "5.6.13"
+omero_web_version: "5.28.0"
 
 # Omero-root
-vault_omero_root_password: "insertStrongPassword"
+vault_omero_root_password: "password"
 
 # SSL
-vault_IceSSL_Password: "insertStrongPassword"
-vault_trustStorePassword: "insertStrongPassword"
-vault_p12_password: "insertStrongPassword"
+vault_IceSSL_Password: "password"
+vault_trustStorePassword: "password"
+vault_p12_password: "password"
 
-# Storage paths
-vault_NFS_fullpath: "fullpath"
+# Storage paths - use COPY of data for staging test
+vault_omero_data_path: "/mnt/omero"
+vault_omero_import_path: "/mnt/omero_import"
+
+# Staging ports (different from production 4063/4064/4080)
+vault_omero_server_port: 4063
+vault_omero_server_ssl_port: 4064
+vault_omero_web_port: 4080
+
+# Container naming prefix (for parallel deployment)
+vault_container_prefix: "omero"
 
 # Pathviewer repository URL for licensed software
-vault_pathviewer_repo_url: "https://username:password@repo.glencoesoftware.com/repository/pathviewer-group/simple"
+#vault_pathviewer_repo_url: "https://username:password@repo.glencoesoftware.com/repository/pathviewer-group/simple"
 
 # LDAP
+## Enable LDAP
 vault_ldap_enabled: true
 
-## LDAP Domain Controllers for certificate fetching (only needed for ldaps://)
-## Uncomment and configure if using ldaps:// URLs
-# vault_domain_controllers:
-#   - host: "ldap.domain.nl"
-#     port: 636
-#     alias: "ldap_domain"
-#   - host: "dc01.domain.nl"
-#     port: 636
-#     alias: "dc01"
-#   - host: "dc02.domain.nl"
-#     port: 636
-#     alias: "dc02"
+## LDAP Domain Controllers for certificate fetching
+#vault_domain_controllers:
+#  - host: "host"
+#    port: 636
+#    alias: "ldap"
 
-## LDAP variables for server_config.Omero
-## Use ldap:// for plain LDAP or ldaps:// for LDAP over SSL (requires certificate setup above)
-vault_ldap_base: "dc=domain,dc=nl"
-vault_ldap_urls: "ldap://ldap.domain.nl"
-vault_ldap_username: "cn=ldapbrowse,cn=Users,dc=domain,dc=nl"
-vault_ldap_password: "insertStrongPassword"
+## LDAP Connection
+vault_ldap_base: "dc=url,dc=prod,dc=intern"
+vault_ldap_urls: "url"
+vault_ldap_username: "username"
+vault_ldap_password: ""
+
+## LDAP User Settings
 vault_ldap_user_filter: "(objectClass=person)"
-vault_ldap_user_mapping: "omeName=cn,firstName=givenName,lastName=sn,email=mail,institution=department,middleName=middleName"
+vault_ldap_user_mapping: "mapping"
+
+## LDAP Group Settings
 vault_ldap_group_filter: "(objectClass=groupOfUniqueNames)"
 vault_ldap_group_mapping: "name=cn"
 vault_ldap_new_user_group: "default"
+
+## LDAP Security
 vault_ldap_security_ignore_case: true
-# vault_ldap_referral: "follow"
-# vault_ldap_sync_on_login: false
+vault_ldap_referral: "follow"
+vault_ldap_sync_on_login: false
