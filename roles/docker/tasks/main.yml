@@ -63,13 +63,6 @@
     state: directory
     mode: '0755'
 
-- name: Deploy custom OMERO server Dockerfile
-  template:
-    src: Dockerfile-server.j2
-    dest: "{{ ansible_user_dir }}/omero-deployment-kit/docker/Dockerfile-server"
-    mode: '0644'
-  notify: restart omero containers
-
 - name: Deploy OMERO server configuration
   template:
     src: server_conf.omero.j2

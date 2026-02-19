@@ -15,9 +15,7 @@ services:
       - "../database:/var/lib/postgresql/data"
 
   omeroserver:
-    build:
-      context: .
-      dockerfile: Dockerfile-server
+    image: "cellularimagingcf/omeroserver:{{ vault_nl_biomero_version | default('latest') }}"
     container_name: "{{ vault_container_prefix | default('omero') }}-server"
     restart: unless-stopped
     security_opt:
@@ -42,11 +40,11 @@ services:
     networks:
       - omero
     ports:
-      - "{{ vault_omero_server_port | default('4063') }}:4063"  # OMERO.insight plaintext client access
-      - "{{ vault_omero_server_ssl_port | default('4064') }}:4064"  # OMERO.insight SSL client access
+      - "{{ vault_omero_server_port | default('4063') }}:4063"
+      - "{{ vault_omero_server_ssl_port | default('4064') }}:4064"
     volumes:
       - "{{ vault_omero_data_path | default('/mnt/omero_data') }}:/OMERO"
-      - "{{ vault_omero_import_path | default('/mnt/omero_import') }}:/data"
+      - "{{ vault_biomero_import_data_path }}:/data"
       - "./server_conf.omero:/opt/omero/server/config/server_conf.omero"
       - "../ssl/omero:/etc/ssl/omero:ro"
     depends_on:
@@ -198,6 +196,3 @@ services:
 networks:
   omero:
     name: "{{ vault_container_prefix | default('omero') }}-network"
-
-volumes:
-  database-biomero:
