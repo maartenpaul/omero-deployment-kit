@@ -144,6 +144,7 @@ services:
       - "{{ vault_omero_web_port | default('4080') }}:4080"
     volumes:
       - "{{ vault_biomero_import_data_path }}:/data:rw"
+      - "../ssl/omero:/etc/ssl/omero:ro"
 {% if vault_biomero_analyzer_enabled | default('FALSE') == 'TRUE' %}
       - "../config/biomero/slurm-config.ini:/opt/omero/web/OMERO.web/var/slurm-config.ini:rw"
 {% endif %}
