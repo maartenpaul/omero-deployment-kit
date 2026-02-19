@@ -19,16 +19,17 @@ vault_pathviewer_repo_url: "https://username:password@repo.glencoesoftware.com/r
 vault_ldap_enabled: true
 
 ## LDAP Domain Controllers for certificate fetching (only needed for ldaps://)
-vault_domain_controllers:
-  - host: "ldap.domain.nl"
-    port: 636
-    alias: "ldap_domain"
-  - host: "dc01.domain.nl"
-    port: 636
-    alias: "dc01"
-  - host: "dc02.domain.nl"
-    port: 636
-    alias: "dc02"
+## Uncomment and configure if using ldaps:// URLs
+# vault_domain_controllers:
+#   - host: "ldap.domain.nl"
+#     port: 636
+#     alias: "ldap_domain"
+#   - host: "dc01.domain.nl"
+#     port: 636
+#     alias: "dc01"
+#   - host: "dc02.domain.nl"
+#     port: 636
+#     alias: "dc02"
 
 ## LDAP variables for server_config.Omero
 ## Use ldap:// for plain LDAP or ldaps:// for LDAP over SSL (requires certificate setup above)

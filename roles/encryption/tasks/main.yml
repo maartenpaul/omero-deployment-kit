@@ -87,33 +87,7 @@
     remote_src: yes
   become: yes
 
-# LDAP Certificate Trust Store
-- name: Ensure LDAP certificate directory exists
-  file:
-    path: "{{ ansible_user_dir }}/omero-deployment-kit/ssl/omero/ldap-certs"
-    state: directory
-    mode: '0755'
-    owner: "{{ omero_uid }}"
-    group: root
-  become: yes
-
-- name: Fetch LDAP certificates from domain controllers
-  shell: |
-    openssl s_client -connect "{{ item.host }}:{{ item.port }}" -prexit < /dev/null | \
-    openssl x509 -outform PEM > "{{ ansible_user_dir }}/omero-deployment-kit/ssl/omero/ldap-certs/{{ item.alias }}.pem"
-  loop: "{{ vault_domain_controllers }}"
-  ignore_errors: yes  # Continue if some DCs are unreachable
-  become: yes
-
-- name: Set correct permissions on LDAP certificates
-  file:
-    path: "{{ ansible_user_dir }}/omero-deployment-kit/ssl/omero/ldap-certs/{{ item.alias }}.pem"
-    owner: "{{ omero_uid }}"
-    group: root
-    mode: '0644'
-  become: yes
-  loop: "{{ vault_domain_controllers }}"
-
+# Java truststore (needed for Glacier2 IceSSL)
 - name: Create Java truststore
   java_cert:
     cert_path: "/etc/ssl/certs/omero.pem"
@@ -123,6 +97,44 @@
     state: present
     cert_alias: "ssl_cert"
   become: yes
+
+- name: Set truststore permissions
+  file:
+    path: "{{ ansible_user_dir }}/omero-deployment-kit/ssl/omero/.mykeystore"
+    mode: '0644'
+    owner: "{{ omero_uid }}"
+    group: root
+  become: yes
+
+# LDAP Certificate Trust Store (only when using ldaps:// with domain controllers)
+- name: Ensure LDAP certificate directory exists
+  file:
+    path: "{{ ansible_user_dir }}/omero-deployment-kit/ssl/omero/ldap-certs"
+    state: directory
+    mode: '0755'
+    owner: "{{ omero_uid }}"
+    group: root
+  become: yes
+  when: vault_domain_controllers is defined and vault_domain_controllers | length > 0
+
+- name: Fetch LDAP certificates from domain controllers
+  shell: |
+    openssl s_client -connect "{{ item.host }}:{{ item.port }}" -prexit < /dev/null | \
+    openssl x509 -outform PEM > "{{ ansible_user_dir }}/omero-deployment-kit/ssl/omero/ldap-certs/{{ item.alias }}.pem"
+  loop: "{{ vault_domain_controllers }}"
+  ignore_errors: yes  # Continue if some DCs are unreachable
+  become: yes
+  when: vault_domain_controllers is defined and vault_domain_controllers | length > 0
+
+- name: Set correct permissions on LDAP certificates
+  file:
+    path: "{{ ansible_user_dir }}/omero-deployment-kit/ssl/omero/ldap-certs/{{ item.alias }}.pem"
+    owner: "{{ omero_uid }}"
+    group: root
+    mode: '0644'
+  become: yes
+  loop: "{{ vault_domain_controllers }}"
+  when: vault_domain_controllers is defined and vault_domain_controllers | length > 0
 
 - name: Add LDAP certificates to truststore
   java_cert:
@@ -134,14 +146,7 @@
   loop: "{{ vault_domain_controllers }}"
   ignore_errors: yes  # Skip certificates that failed to download
   become: yes
-
-- name: Set truststore permissions
-  file:
-    path: "{{ ansible_user_dir }}/omero-deployment-kit/ssl/omero/.mykeystore"
-    mode: '0644'
-    owner: "{{ omero_uid }}"
-    group: root
-  become: yes
+  when: vault_domain_controllers is defined and vault_domain_controllers | length > 0
 
 
 
