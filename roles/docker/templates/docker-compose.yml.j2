@@ -37,6 +37,7 @@ services:
       CONFIG_omero_db_pass: "{{ vault_postgres_password }}"
       CONFIG_omero_db_name: "{{ vault_postgres_database | default('omero') }}"
       CONFIG_omero_scripts_timeout: 604800000
+      CONFIG_omero_logging_level: 10
       ROOTPASS: "{{ vault_omero_root_password }}"
 {% if vault_omero_worker_enabled | default('FALSE') == 'TRUE' or vault_biomero_analyzer_enabled | default('FALSE') == 'TRUE' %}
       CONFIG_omero_master_host: omeroserver
@@ -58,6 +59,12 @@ services:
       - "{{ vault_biomero_import_data_path }}:/data"
       - "./server_conf.omero:/opt/omero/server/config/server_conf.omero"
       - "../ssl/omero:/etc/ssl/omero:ro"
+      - "../logs/omeroserver:/opt/omero/server/OMERO.server/var/log"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
     depends_on:
       database:
         condition: service_healthy
@@ -81,6 +88,12 @@ services:
     volumes:
       - "{{ vault_omero_data_path | default('/mnt/omero_data') }}:/OMERO"
       - "{{ vault_biomero_import_data_path }}:/data"
+      - "../logs/omeroworker-1:/opt/omero/server/OMERO.server/var/log"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
     depends_on:
       omeroserver:
         condition: service_healthy
@@ -110,6 +123,12 @@ services:
       - "{{ vault_biomero_ssh_keys_path | default('/opt/omero/.ssh') }}:/tmp/.ssh:ro"
       - "../config/biomero/slurm-config.ini:/opt/omero/server/slurm-config.ini:rw"
       - "{{ vault_biomero_import_data_path }}:/data"
+      - "../logs/biomeroworker:/opt/omero/server/OMERO.server/var/log"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
     depends_on:
       omeroserver:
         condition: service_healthy
@@ -152,6 +171,7 @@ services:
       ANALYZER_ENABLED: "{{ vault_biomero_analyzer_enabled | default('FALSE') }}"
       FORMS_MASTER_USER: "{{ vault_forms_master_user | default('root') }}"
       FORMS_MASTER_PASSWORD: "{{ vault_forms_master_password | default('omero') }}"
+      OMERO_BIOMERO_CONFIG_FILE: /opt/omero/web/OMERO.web/var/biomero-config.json
 {% if vault_biomero_analyzer_enabled | default('FALSE') == 'TRUE' %}
       METABASE_SITE_URL: "{{ vault_metabase_site_url }}"
       METABASE_SECRET_KEY: "{{ vault_metabase_secret_key }}"
@@ -168,6 +188,13 @@ services:
 {% if vault_biomero_analyzer_enabled | default('FALSE') == 'TRUE' %}
       - "../config/biomero/slurm-config.ini:/opt/omero/web/OMERO.web/var/slurm-config.ini:rw"
 {% endif %}
+      - "../config/biomero/biomero-config.json:/opt/omero/web/OMERO.web/var/biomero-config.json:rw"
+      - "../logs/omeroweb:/opt/omero/web/OMERO.web/var/log"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
     depends_on:
       omeroserver:
         condition: service_healthy
@@ -206,11 +233,19 @@ services:
       OMERO_USER: "{{ vault_biomero_omero_user | default('root') }}"
       OMERO_PASSWORD: "{{ vault_omero_root_password }}"
       INGEST_TRACKING_DB_URL: "postgresql+psycopg2://{{ vault_biomero_postgres_user | default('biomero') }}:{{ vault_biomero_postgres_password }}@database-biomero:5432/{{ vault_biomero_postgres_database | default('biomero') }}"
+      ADI_RUN_MIGRATIONS: "1"
     networks:
       - omero
     volumes:
+      - "{{ vault_omero_data_path | default('/mnt/omero_data') }}:/OMERO"
       - "{{ vault_biomero_import_data_path }}:/data"
       - "../config/biomero-importer/groups_list.json:/auto-importer/config/groups_list.json"
+      - "../logs/biomero-importer:/auto-importer/logs"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
     user: "{{ vault_biomero_importer_uid | default('1000') }}:{{ vault_biomero_importer_gid | default('1000') }}"
     depends_on:
       omeroserver:

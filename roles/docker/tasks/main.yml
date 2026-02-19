@@ -99,6 +99,47 @@
     mode: '0644'
   notify: restart omero containers
 
+- name: Create log directories for all services
+  file:
+    path: "{{ ansible_user_dir }}/omero-deployment-kit/logs/{{ item }}"
+    state: directory
+    owner: "{{ omero_uid | default('1000') }}"
+    group: "{{ omero_uid | default('1000') }}"
+    mode: '0775'
+  become: yes
+  loop:
+    - omeroserver
+    - omeroweb
+    - biomero-importer
+
+- name: Create omeroworker-1 log directory
+  file:
+    path: "{{ ansible_user_dir }}/omero-deployment-kit/logs/omeroworker-1"
+    state: directory
+    owner: "{{ omero_uid | default('1000') }}"
+    group: "{{ omero_uid | default('1000') }}"
+    mode: '0775'
+  become: yes
+  when: vault_omero_worker_enabled | default('FALSE') == 'TRUE'
+
+- name: Create biomeroworker log directory
+  file:
+    path: "{{ ansible_user_dir }}/omero-deployment-kit/logs/biomeroworker"
+    state: directory
+    owner: "{{ omero_uid | default('1000') }}"
+    group: "{{ omero_uid | default('1000') }}"
+    mode: '0775'
+  become: yes
+  when: vault_biomero_analyzer_enabled | default('FALSE') == 'TRUE'
+
+- name: Deploy biomero-config.json
+  copy:
+    src: biomero-config.json
+    dest: "{{ ansible_user_dir }}/omero-deployment-kit/config/biomero/biomero-config.json"
+    mode: '0644'
+    force: no
+  notify: restart omero containers
+
 - name: Deploy docker-compose configuration
   template:
     src: docker-compose.yml.j2
