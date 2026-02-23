@@ -41,7 +41,7 @@ services:
       ROOTPASS: "{{ vault_omero_root_password }}"
 {% if vault_omero_worker_enabled | default('FALSE') == 'TRUE' or vault_biomero_analyzer_enabled | default('FALSE') == 'TRUE' %}
       CONFIG_omero_master_host: omeroserver
-      CONFIG_omero_server_nodedescriptors: "master:Blitz-0{% if vault_omero_worker_enabled | default('FALSE') == 'TRUE' %} omeroworker-1:Tables-0,Indexer-0,PixelData-0,DropBox,MonitorServer,FileServer,Storm{% endif %}{% if vault_biomero_analyzer_enabled | default('FALSE') == 'TRUE' %} biomeroworker:Processor-0{% endif %}"
+      CONFIG_omero_server_nodedescriptors: "master:Blitz-0{% if vault_biomero_analyzer_enabled | default('FALSE') != 'TRUE' %},Processor-0{% endif %}{% if vault_omero_worker_enabled | default('FALSE') == 'TRUE' %} omeroworker-1:Tables-0,Indexer-0,PixelData-0,DropBox,MonitorServer,FileServer,Storm{% endif %}{% if vault_biomero_analyzer_enabled | default('FALSE') == 'TRUE' %} biomeroworker:Processor-0{% endif %}"
 {% endif %}
     networks:
       - omero
