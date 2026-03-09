@@ -1,14 +1,22 @@
 # Generate self-signed certificate for localhost testing
+- name: Check if SSL certificate exists
+  stat:
+    path: /etc/ssl/certs/omero.pem
+  register: ssl_cert
+
 - name: Create self-signed certificate for localhost
-  command: openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/omero.key -out /etc/ssl/certs/omero.pem -subj "/C=US/ST=Test/L=Test/O=Test/OU=Test/CN=localhost"
-  args:
-    creates: /etc/ssl/certs/omero.pem
+  command: >
+    openssl req -x509 -nodes -days 365 -newkey rsa:2048
+    -keyout /etc/ssl/private/omero.key
+    -out /etc/ssl/certs/omero.pem
+    -subj "/C=US/ST=Test/L=Test/O=Test/OU=Test/CN=localhost"
   become: yes
+  when: not ssl_cert.stat.exists
 
 - name: Set certificate permissions
   file:
     path: /etc/ssl/certs/omero.pem
-    mode: '644'
+    mode: '0644'
     owner: root
     group: root
   become: yes
@@ -16,7 +24,7 @@
 - name: Set private key permissions
   file:
     path: /etc/ssl/private/omero.key
-    mode: '600'
+    mode: '0600'
     owner: root
     group: root
   become: yes
@@ -32,8 +40,12 @@
     group: root
   become: yes
 
-# Create the p12 and place in 
-- name: Create PKCS#12 bundle for omero-server 
+- name: Check if PKCS#12 bundle exists
+  stat:
+    path: "{{ ansible_user_dir }}/omero-deployment-kit/ssl/omero/omero.p12"
+  register: p12_bundle
+
+- name: Create PKCS#12 bundle for omero-server
   shell: |
     openssl pkcs12 -export \
       -in /etc/ssl/certs/omero.pem \
@@ -41,9 +53,8 @@
       -out "{{ ansible_user_dir }}/omero-deployment-kit/ssl/omero/omero.p12" \
       -name "omero-server" \
       -passout pass:"{{ vault_IceSSL_Password }}"
-  args:
-    creates: "{{ ansible_user_dir }}/omero-deployment-kit/ssl/omero/omero.p12"
   become: yes
+  when: not p12_bundle.stat.exists
 
 - name: Set PKCS#12 bundle permissions
   file:
@@ -53,11 +64,15 @@
     group: root
   become: yes
 
+- name: Check if DH parameters exist
+  stat:
+    path: "{{ ansible_user_dir }}/omero-deployment-kit/ssl/omero/ffdhe2048.pem"
+  register: dh_params
+
 - name: Generate Diffie-Hellman parameters for Glacier2 IceSSL
   command: openssl dhparam -out "{{ ansible_user_dir }}/omero-deployment-kit/ssl/omero/ffdhe2048.pem" 2048
-  args:
-    creates: "{{ ansible_user_dir }}/omero-deployment-kit/ssl/omero/ffdhe2048.pem"
   become: yes
+  when: not dh_params.stat.exists
 
 - name: Set DH parameters permissions
   file:
@@ -147,6 +162,3 @@
   ignore_errors: yes  # Skip certificates that failed to download
   become: yes
   when: vault_domain_controllers is defined and vault_domain_controllers | length > 0
-
-
-

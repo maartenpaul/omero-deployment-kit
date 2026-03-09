@@ -49,14 +49,6 @@
   become: yes
   notify: restart docker
 
-# Force fresh SSH connection to pick up new group membership
-# https://stackoverflow.com/questions/26677064/create-and-use-group-without-restart
-- name: Reset SSH connection for group refresh
-  local_action:
-    module: file
-    path: "~/.ansible/cp"
-    state: absent
-
 - name: Create docker directory
   file:
     path: "{{ ansible_user_dir }}/omero-deployment-kit/docker"
@@ -104,7 +96,7 @@
     path: "{{ ansible_user_dir }}/omero-deployment-kit/logs/{{ item }}"
     state: directory
     owner: "{{ omero_uid | default('1000') }}"
-    group: "{{ omero_uid | default('1000') }}"
+    group: root
     mode: '0775'
   become: yes
   loop:
@@ -117,7 +109,7 @@
     path: "{{ ansible_user_dir }}/omero-deployment-kit/logs/omeroworker-1"
     state: directory
     owner: "{{ omero_uid | default('1000') }}"
-    group: "{{ omero_uid | default('1000') }}"
+    group: root
     mode: '0775'
   become: yes
   when: vault_omero_worker_enabled | default('FALSE') == 'TRUE'
@@ -127,7 +119,7 @@
     path: "{{ ansible_user_dir }}/omero-deployment-kit/logs/biomeroworker"
     state: directory
     owner: "{{ omero_uid | default('1000') }}"
-    group: "{{ omero_uid | default('1000') }}"
+    group: root
     mode: '0775'
   become: yes
   when: vault_biomero_analyzer_enabled | default('FALSE') == 'TRUE'

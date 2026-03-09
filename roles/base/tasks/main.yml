@@ -12,21 +12,13 @@
       - default-jdk  # For keytool command in LDAP certificate management
   become: yes
 
-- name: Create local test data directory
-  file:
-    path: "{{ vault_omero_data_path | default('/mnt/omero_data') }}"
-    state: directory
-    mode: '0755'
-  become: yes
-
-- name: Set OMERO data directory ownership
+- name: Create OMERO data directory with correct ownership
   file:
     path: "{{ vault_omero_data_path | default('/mnt/omero_data') }}"
     state: directory
     owner: "{{ omero_uid }}"
     group: root
     mode: '0750'
-    recurse: yes
   become: yes
 
 # Clone or pull the omero-deployment-kit repo
