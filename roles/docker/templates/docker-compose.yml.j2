@@ -251,7 +251,6 @@ services:
       - SYS_ADMIN
     security_opt:
       - "label=disable"
-      - no-new-privileges:true
     environment:
       OMERO_HOST: omeroserver
       OMERO_PORT: "4064"
