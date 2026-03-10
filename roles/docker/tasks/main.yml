@@ -75,7 +75,9 @@
   file:
     path: "{{ ansible_user_dir }}/omero-deployment-kit/metabase"
     state: directory
-    mode: '0755'
+    owner: "2000"
+    group: "2000"
+    mode: '0750'
   become: yes
 
 - name: Create biomero-importer config directory
@@ -136,11 +138,13 @@
   become: yes
   when: vault_biomero_analyzer_enabled | default('FALSE') == 'TRUE'
 
-- name: Create OMERO data directory
+- name: Ensure OMERO data directory exists
   file:
     path: "{{ vault_omero_data_path | default('/mnt/omero_data') }}"
     state: directory
-    mode: '0777'
+    owner: "{{ omero_uid | default('1000') }}"
+    group: "{{ omero_uid | default('1000') }}"
+    mode: '0750'
   become: yes
   ignore_errors: yes
 
