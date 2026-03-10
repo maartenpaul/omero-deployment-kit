@@ -91,18 +91,30 @@
     mode: '0644'
   notify: restart omero containers
 
+- name: Ensure SSL certificate files are readable by container users
+  file:
+    path: "{{ ansible_user_dir }}/omero-deployment-kit/ssl/omero"
+    state: directory
+    mode: '0755'
+  become: yes
+
+- name: Set SSL certificate files world-readable
+  shell: "chmod a+r {{ ansible_user_dir }}/omero-deployment-kit/ssl/omero/*"
+  become: yes
+  failed_when: false
+
 - name: Create log directories for all services
   file:
-    path: "{{ ansible_user_dir }}/omero-deployment-kit/logs/{{ item }}"
+    path: "{{ ansible_user_dir }}/omero-deployment-kit/logs/{{ item.path }}"
     state: directory
-    owner: "{{ omero_uid | default('1000') }}"
+    owner: "{{ item.owner }}"
     group: root
     mode: '0775'
   become: yes
   loop:
-    - omeroserver
-    - omeroweb
-    - biomero-importer
+    - { path: "omeroserver", owner: "{{ omero_uid | default('1000') }}" }
+    - { path: "omeroweb", owner: "999" }
+    - { path: "biomero-importer", owner: "{{ vault_biomero_importer_uid | default('1000') }}" }
 
 - name: Create omeroworker-1 log directory
   file:
@@ -123,6 +135,14 @@
     mode: '0775'
   become: yes
   when: vault_biomero_analyzer_enabled | default('FALSE') == 'TRUE'
+
+- name: Create OMERO data directory
+  file:
+    path: "{{ vault_omero_data_path | default('/mnt/omero_data') }}"
+    state: directory
+    mode: '0777'
+  become: yes
+  ignore_errors: yes
 
 - name: Deploy biomero-config.json
   copy:

@@ -26,9 +26,6 @@ services:
     security_opt:
       - seccomp=unconfined
     ulimits:
-      nofile:
-        soft: 8192
-        hard: 65536
       nproc: 2048
       stack: 16777216
     environment:
@@ -161,6 +158,11 @@ services:
     container_name: "{{ vault_container_prefix | default('omero') }}-web"
     restart: unless-stopped
     environment:
+{% if vault_http_proxy | default('') != '' %}
+      HTTP_PROXY: "{{ vault_http_proxy }}"
+      HTTPS_PROXY: "{{ vault_http_proxy }}"
+      NO_PROXY: "{{ vault_no_proxy | default('localhost,127.0.0.1') }}"
+{% endif %}
       OMEROHOST: omeroserver
       OMEROPORT: "4064"
       CONFIG_omero_web_login__logo: "{{ vault_omero_web_login_logo | default('') }}"

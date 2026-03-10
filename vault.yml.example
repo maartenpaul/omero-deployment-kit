@@ -1,3 +1,7 @@
+# Optional: HTTP proxy for containers (if behind a proxy, required for upgrade checks)
+# vault_http_proxy: "http://proxy.example.com:8080"
+# vault_no_proxy: "localhost,127.0.0.1"
+
 # Database - match your existing NL-BIOMERO credentials
 vault_postgres_user: "omero"
 vault_postgres_database: "omero"
