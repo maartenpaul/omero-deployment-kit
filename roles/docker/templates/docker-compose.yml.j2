@@ -26,9 +26,6 @@ services:
     security_opt:
       - seccomp=unconfined
     ulimits:
-      nofile:
-        soft: 8192
-        hard: 65536
       nproc: 2048
       stack: 16777216
     environment:
@@ -136,6 +133,7 @@ services:
         condition: service_healthy
 
 {% endif %}
+{% if vault_biomero_analyzer_enabled | default('FALSE') == 'TRUE' or vault_biomero_importer_enabled | default('TRUE') == 'TRUE' %}
   database-biomero:
     image: "postgres:16"
     container_name: "{{ vault_container_prefix | default('omero') }}-database-biomero"
@@ -154,13 +152,19 @@ services:
     volumes:
       - "../database-biomero:/var/lib/postgresql/data"
 
+{% endif %}
   omeroweb:
     image: "cellularimagingcf/omeroweb:{{ vault_nl_biomero_version | default('latest') }}"
     container_name: "{{ vault_container_prefix | default('omero') }}-web"
     restart: unless-stopped
     environment:
+{% if vault_http_proxy | default('') != '' %}
+      HTTP_PROXY: "{{ vault_http_proxy }}"
+      HTTPS_PROXY: "{{ vault_http_proxy }}"
+      NO_PROXY: "{{ vault_no_proxy | default('localhost,127.0.0.1') }}"
+{% endif %}
       OMEROHOST: omeroserver
-      OMEROPORT: "{{ vault_omero_server_ssl_port | default('4064') }}"
+      OMEROPORT: "4064"
       CONFIG_omero_web_login__logo: "{{ vault_omero_web_login_logo | default('') }}"
       CONFIG_omero_scripts_timeout: 604800000
       ENV: "{{ vault_biomero_env | default('TEST') }}"
@@ -198,9 +202,12 @@ services:
     depends_on:
       omeroserver:
         condition: service_healthy
+{% if vault_biomero_analyzer_enabled | default('FALSE') == 'TRUE' or vault_biomero_importer_enabled | default('TRUE') == 'TRUE' %}
       database-biomero:
         condition: service_healthy
+{% endif %}
 
+{% if vault_biomero_analyzer_enabled | default('FALSE') == 'TRUE' %}
   metabase:
     image: "metabase/metabase@sha256:f7b5dc52c21aaa2dca910a450e7e6119a975090ce9fc80726aa0742882ca176c"
     container_name: "{{ vault_container_prefix | default('omero') }}-metabase"
@@ -217,6 +224,7 @@ services:
     volumes:
       - "../metabase:/metabase-data"
 
+{% endif %}
 {% if vault_biomero_importer_enabled | default('TRUE') == 'TRUE' %}
   biomero-importer:
     image: "cellularimagingcf/biomero-importer:{{ vault_biomero_importer_version | default('latest') }}"
@@ -229,7 +237,7 @@ services:
       - "label=disable"
     environment:
       OMERO_HOST: omeroserver
-      OMERO_PORT: "{{ vault_omero_server_ssl_port | default('4064') }}"
+      OMERO_PORT: "4064"
       OMERO_USER: "{{ vault_biomero_omero_user | default('root') }}"
       OMERO_PASSWORD: "{{ vault_omero_root_password }}"
       INGEST_TRACKING_DB_URL: "postgresql+psycopg2://{{ vault_biomero_postgres_user | default('biomero') }}:{{ vault_biomero_postgres_password }}@database-biomero:5432/{{ vault_biomero_postgres_database | default('biomero') }}"
