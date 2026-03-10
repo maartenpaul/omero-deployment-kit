@@ -8,6 +8,7 @@ database/
 /backups/*
 !/backups/README.md
 docker/docker-compose.yml
+docker/server_conf.omero
 database-biomero/
 metabase/
 config/biomero-importer/groups_list.json
