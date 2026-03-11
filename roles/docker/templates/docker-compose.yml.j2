@@ -219,7 +219,7 @@ services:
         condition: service_healthy
 {% endif %}
 
-{% if vault_biomero_importer_enabled | vault_biomero_analyzer_enabled | default('FALSE') == 'TRUE' %}
+{% if vault_biomero_analyzer_enabled | default('FALSE') == 'TRUE' or vault_biomero_importer_enabled | default('TRUE') == 'TRUE' %}
   metabase:
     image: "metabase/metabase@sha256:f7b5dc52c21aaa2dca910a450e7e6119a975090ce9fc80726aa0742882ca176c"
     container_name: "{{ vault_container_prefix | default('omero') }}-metabase"
